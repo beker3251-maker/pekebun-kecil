@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a3a2a">
+<title>Sistem Pekebun Kecil Lundu</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-dark: #1a3a2a;
+    --green-mid: #2d6a4f;
+    --green-bright: #40916c;
+    --green-light: #74c69d;
+    --green-pale: #d8f3dc;
+    --gold: #d4a017;
+    --gold-light: #f5d06a;
+    --cream: #faf7f0;
+    --text-dark: #1a2e1e;
+    --text-mid: #3a5a44;
+    --shadow: rgba(26,58,42,0.15);
+    --red: #c0392b;
+    --red-pale: #fff0f0;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text-dark); min-height:100vh; }
+
+  /* ===== LOGIN PAGE ===== */
+  .login-page {
+    display:none; min-height:100vh;
+    background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 50%, var(--green-bright) 100%);
+    align-items:center; justify-content:center; padding:20px;
+    position:relative; overflow:hidden;
+  }
+  .login-page.show { display:flex; }
+  .login-page::before {
+    content:'🌿'; font-size:300px; position:absolute;
+    right:-60px; top:-60px; opacity:0.05; line-height:1;
+  }
+  .login-card {
+    background:#fff; border-radius:24px; padding:40px 36px;
+    width:100%; max-width:420px;
+    box-shadow:0 24px 60px rgba(0,0,0,0.25);
+    animation:slideUp 0.4s ease;
+  }
+  @keyframes slideUp { from{opacity:0;transform:translateY(30px);} to{opacity:1;transform:translateY(0);} }
+  .login-logo {
+    text-align:center; margin-bottom:28px;
+  }
+  .login-logo .icon {
+    width:64px; height:64px;
+    background:linear-gradient(135deg,var(--gold),var(--gold-light));
+    border-radius:18px; display:inline-flex; align-items:center; justify-content:center;
+    font-size:30px; box-shadow:0 6px 20px rgba(212,160,23,0.4);
+    margin-bottom:14px;
+  }
+  .login-logo h1 { font-family:'Playfair Display',serif; font-size:22px; color:var(--green-dark); }
+  .login-logo p { font-size:12px; color:#7a9a82; margin-top:4px; letter-spacing:0.5px; }
+
+  .login-form { display:flex; flex-direction:column; gap:16px; }
+  .input-group { display:flex; flex-direction:column; gap:6px; }
+  .input-group label { font-size:11px; font-weight:600; color:var(--text-mid); text-transform:uppercase; letter-spacing:0.8px; }
+  .input-wrap { position:relative; }
+  .input-wrap span { position:absolute; left:13px; top:50%; transform:translateY(-50%); font-size:16px; }
+  .input-wrap input {
+    width:100%; padding:12px 13px 12px 40px;
+    border:1.5px solid #e0ece5; border-radius:10px;
+    font-family:'DM Sans',sans-serif; font-size:14px;
+    background:#f9fdfb; outline:none; transition:all 0.2s;
+  }
+  .input-wrap input:focus { border-color:var(--green-bright); box-shadow:0 0 0 3px rgba(64,145,108,0.12); background:#fff; }
+
+  .btn-login {
+    padding:13px; border:none; border-radius:11px;
+    background:linear-gradient(135deg,var(--green-mid),var(--green-bright));
+    color:#fff; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600;
+    cursor:pointer; transition:all 0.2s;
+    box-shadow:0 4px 14px rgba(45,106,79,0.4);
+    margin-top:4px;
+  }
+  .btn-login:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(45,106,79,0.45); }
+  .btn-login:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+
+  .login-error {
+    background:#fff0f0; border:1px solid #ffc0c0; color:var(--red);
+    padding:10px 14px; border-radius:9px; font-size:13px; text-align:center;
+    display:none;
+  }
+  .login-error.show { display:block; }
+  .login-hint {
+    text-align:center; font-size:12px; color:#aaa; margin-top:8px;
+  }
+
+  /* ===== MAIN APP ===== */
+  .main-app { display:none; }
+  .main-app.show { display:block; }
+
+  header {
+    background:linear-gradient(135deg,var(--green-dark) 0%,var(--green-mid) 60%,var(--green-bright) 100%);
+    padding:16px 20px; display:flex; align-items:center; justify-content:space-between;
+    box-shadow:0 4px 20px var(--shadow); position:sticky; top:0; z-index:100;
+  }
+  .header-left { display:flex; align-items:center; gap:12px; }
+  .logo-icon {
+    width:42px; height:42px;
+    background:linear-gradient(135deg,var(--gold),var(--gold-light));
+    border-radius:11px; display:flex; align-items:center; justify-content:center;
+    font-size:20px; box-shadow:0 4px 12px rgba(212,160,23,0.4);
+  }
+  .header-title h1 { font-family:'Playfair Display',serif; font-size:16px; color:#fff; }
+  .header-title p { font-size:10px; color:var(--green-light); letter-spacing:1px; text-transform:uppercase; }
+
+  .header-right { display:flex; align-items:center; gap:10px; }
+  .user-badge {
+    display:flex; align-items:center; gap:7px;
+    background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2);
+    padding:6px 12px; border-radius:50px; font-size:12px; color:#fff; font-weight:500;
+  }
+  .role-tag {
+    padding:2px 8px; border-radius:20px; font-size:10px; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.5px;
+  }
+  .role-admin { background:var(--gold); color:#5a3a00; }
+  .role-user { background:var(--green-light); color:var(--green-dark); }
+  .sync-dot { width:7px; height:7px; border-radius:50%; background:#74c69d; animation:pulse 2s infinite; }
+  .sync-dot.offline { background:#e74c3c; animation:none; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+  .btn-logout {
+    padding:6px 13px; border:1px solid rgba(255,255,255,0.3); border-radius:8px;
+    background:rgba(255,255,255,0.1); color:#fff; cursor:pointer;
+    font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500;
+    transition:all 0.2s;
+  }
+  .btn-logout:hover { background:rgba(255,255,255,0.2); }
+
+  .container { max-width:1100px; margin:0 auto; padding:22px 14px; }
+  .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:22px; }
+  .stat-card {
+    background:#fff; border-radius:14px; padding:15px 17px;
+    border:1px solid rgba(116,198,157,0.2); box-shadow:0 2px 10px var(--shadow);
+    display:flex; align-items:center; gap:12px; transition:transform 0.2s;
+  }
+  .stat-card:hover { transform:translateY(-2px); }
+  .stat-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0; }
+  .stat-icon.green { background:var(--green-pale); }
+  .stat-icon.gold { background:#fdf3d8; }
+  .stat-info .num { font-size:21px; font-weight:700; color:var(--green-dark); line-height:1; }
+  .stat-info .lbl { font-size:11px; color:#7a9a82; margin-top:3px; }
+
+  .tab-bar {
+    display:flex; gap:4px; background:#fff; padding:4px;
+    border-radius:10px; box-shadow:0 2px 8px var(--shadow);
+    width:fit-content; margin-bottom:18px;
+  }
+  .tab-btn {
+    padding:8px 18px; border:none; background:none; border-radius:7px;
+    cursor:pointer; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500;
+    color:#7a9a82; transition:all 0.2s;
+  }
+  .tab-btn.active { background:var(--green-mid); color:#fff; box-shadow:0 3px 10px rgba(45,106,79,0.35); }
+  .tab-btn:hover:not(.active) { background:var(--green-pale); color:var(--green-dark); }
+
+  .form-panel {
+    background:#fff; border-radius:16px; padding:22px 24px;
+    box-shadow:0 2px 14px var(--shadow); border:1px solid rgba(116,198,157,0.15);
+    margin-bottom:22px; display:none;
+  }
+  .form-panel.show { display:block; animation:fadeIn 0.3s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-8px);} to{opacity:1;transform:translateY(0);} }
+  .form-panel h2 { font-family:'Playfair Display',serif; font-size:17px; color:var(--green-dark); margin-bottom:16px; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:13px; }
+  .form-group { display:flex; flex-direction:column; gap:5px; }
+  label { font-size:11px; font-weight:600; color:var(--text-mid); text-transform:uppercase; letter-spacing:0.8px; }
+  input[type=text], input[type=number], input[type=password], select {
+    padding:9px 12px; border:1.5px solid #e0ece5; border-radius:8px;
+    font-family:'DM Sans',sans-serif; font-size:13px; color:var(--text-dark);
+    background:#f9fdfb; outline:none; transition:border-color 0.2s, box-shadow 0.2s;
+  }
+  input:focus, select:focus { border-color:var(--green-bright); box-shadow:0 0 0 3px rgba(64,145,108,0.12); background:#fff; }
+  .form-actions { display:flex; gap:10px; margin-top:16px; }
+
+  .btn { padding:9px 22px; border:none; border-radius:8px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; transition:all 0.2s; }
+  .btn-primary { background:linear-gradient(135deg,var(--green-mid),var(--green-bright)); color:#fff; box-shadow:0 4px 12px rgba(45,106,79,0.35); }
+  .btn-primary:hover { transform:translateY(-1px); }
+  .btn-primary:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+  .btn-secondary { background:var(--green-pale); color:var(--green-dark); }
+  .btn-secondary:hover { background:#c2eacf; }
+  .btn-danger { background:var(--red-pale); color:var(--red); padding:5px 11px; font-size:12px; }
+  .btn-danger:hover { background:#ffd5d5; }
+  .btn-edit { background:#fff8e6; color:#b8860b; padding:5px 11px; font-size:12px; }
+  .btn-edit:hover { background:#ffefc0; }
+
+  /* ADMIN PANEL */
+  .admin-panel {
+    background:#fff; border-radius:16px; padding:22px 24px;
+    box-shadow:0 2px 14px var(--shadow); border:1px solid rgba(212,160,23,0.2);
+    margin-bottom:22px; display:none;
+  }
+  .admin-panel.show { display:block; animation:fadeIn 0.3s ease; }
+  .admin-panel h2 { font-family:'Playfair Display',serif; font-size:17px; color:var(--green-dark); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+  .admin-badge { background:#fdf3d8; color:#9a6f00; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+  .user-list { display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+  .user-item {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 16px; background:#f9fdfb; border-radius:10px;
+    border:1px solid #e0ece5;
+  }
+  .user-info { display:flex; align-items:center; gap:10px; }
+  .user-avatar {
+    width:36px; height:36px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; font-weight:600;
+  }
+  .avatar-admin { background:#fdf3d8; color:#9a6f00; }
+  .avatar-user { background:var(--green-pale); color:var(--green-mid); }
+  .user-name { font-weight:600; font-size:14px; color:var(--green-dark); }
+  .user-role-lbl { font-size:11px; color:#7a9a82; }
+
+  .toolbar { display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+  .search-box { flex:1; min-width:180px; position:relative; }
+  .search-box input { width:100%; padding-left:34px; background:#fff; }
+  .search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); font-size:14px; color:#7a9a82; }
+
+  .table-wrap { background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 2px 14px var(--shadow); border:1px solid rgba(116,198,157,0.15); }
+  table { width:100%; border-collapse:collapse; }
+  thead tr { background:linear-gradient(90deg,var(--green-dark) 0%,var(--green-mid) 100%); }
+  thead th { padding:11px 14px; text-align:left; font-size:10px; font-weight:600; color:var(--green-light); text-transform:uppercase; letter-spacing:1px; white-space:nowrap; }
+  tbody tr { border-bottom:1px solid #f0f7f2; transition:background 0.15s; }
+  tbody tr:last-child { border-bottom:none; }
+  tbody tr:hover { background:#f4fbf6; }
+  tbody td { padding:11px 14px; font-size:13px; }
+  .td-name { font-weight:600; color:var(--green-dark); }
+  .td-ic { font-family:monospace; font-size:12px; color:#555; }
+  .badge { display:inline-block; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600; }
+  .badge-green { background:var(--green-pale); color:var(--green-mid); }
+  .badge-gold { background:#fdf3d8; color:#9a6f00; }
+  .td-actions { display:flex; gap:5px; }
+  .empty-state { text-align:center; padding:50px 20px; color:#a0b5a5; }
+  .empty-icon { font-size:44px; margin-bottom:10px; }
+
+  /* ACCESS DENIED */
+  .access-denied {
+    display:flex; align-items:center; gap:10px;
+    background:#fff8e6; border:1px solid #f5d06a;
+    padding:12px 16px; border-radius:10px; margin-bottom:20px;
+    font-size:13px; color:#9a6f00;
+  }
+
+  .loading-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(26,58,42,0.75); z-index:500;
+    align-items:center; justify-content:center; flex-direction:column; gap:14px;
+  }
+  .loading-overlay.show { display:flex; }
+  .spinner { width:42px; height:42px; border:4px solid rgba(255,255,255,0.2); border-top-color:#74c69d; border-radius:50%; animation:spin 0.8s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg);} }
+  .loading-text { color:#fff; font-size:14px; }
+
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:999; align-items:center; justify-content:center; padding:16px; }
+  .modal-overlay.show { display:flex; }
+  .modal { background:#fff; border-radius:16px; padding:26px; width:560px; max-width:100%; box-shadow:0 20px 60px rgba(0,0,0,0.2); animation:modalIn 0.25s ease; }
+  @keyframes modalIn { from{opacity:0;transform:scale(0.92);} to{opacity:1;transform:scale(1);} }
+  .modal h2 { font-family:'Playfair Display',serif; font-size:17px; color:var(--green-dark); margin-bottom:16px; }
+  .modal-actions { display:flex; gap:10px; margin-top:16px; justify-content:flex-end; }
+
+  .toast {
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(80px);
+    background:var(--green-dark); color:#fff;
+    padding:11px 20px; border-radius:9px; font-size:13px; font-weight:500;
+    box-shadow:0 8px 24px rgba(0,0,0,0.2); opacity:0; transition:all 0.3s ease; z-index:9999; white-space:nowrap;
+  }
+  .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+  .toast.error { background:var(--red); }
+
+  @media(max-width:700px) {
+    .stats-row { grid-template-columns:repeat(2,1fr); }
+    .form-grid { grid-template-columns:1fr 1fr; }
+    thead th:nth-child(7), tbody td:nth-child(7) { display:none; }
+    .header-right { gap:6px; }
+    .user-badge span:not(.sync-dot):not(.role-tag) { display:none; }
+  }
+  @media(max-width:480px) {
+    .form-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay show" id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Memuatkan sistem...</div>
+</div>
+
+<!-- ===== LOGIN PAGE ===== -->
+<div class="login-page" id="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icon">🌿</div>
+      <h1>Sistem Pekebun Kecil</h1>
+      <p>Lundu — Sila log masuk untuk teruskan</p>
+    </div>
+    <div class="login-form">
+      <div class="input-group">
+        <label>Username</label>
+        <div class="input-wrap">
+          <span>👤</span>
+          <input type="text" id="login-username" placeholder="Masukkan username" autocomplete="username">
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <div class="input-wrap">
+          <span>🔒</span>
+          <input type="password" id="login-password" placeholder="Masukkan password" autocomplete="current-password">
+        </div>
+      </div>
+      <div class="login-error" id="login-error">❌ Username atau password salah!</div>
+      <button class="btn-login" id="btn-login" onclick="doLogin()">Log Masuk</button>
+      <p class="login-hint">Hubungi Admin untuk akaun baru</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div class="main-app" id="main-app">
+  <header>
+    <div class="header-left">
+      <div class="logo-icon">🌿</div>
+      <div class="header-title">
+        <h1>Sistem Pekebun Kecil Lundu</h1>
+        <p>Real-time sync • Firebase</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="user-badge">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="current-user-name">-</span>
+        <span class="role-tag" id="current-role-tag">-</span>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">🚪 Keluar</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon green">👨‍🌾</div>
+        <div class="stat-info"><div class="num" id="stat-total">0</div><div class="lbl">Jumlah Pekebun</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">🗺️</div>
+        <div class="stat-info"><div class="num" id="stat-hektar">0.00</div><div class="lbl">Jumlah Hektar</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon gold">💰</div>
+        <div class="stat-info"><div class="num" id="stat-bantuan">0</div><div class="lbl">Menerima Bantuan</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon gold">👥</div>
+        <div class="stat-info"><div class="num" id="stat-users">0</div><div class="lbl">Pengguna Aktif</div></div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tab-bar" id="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('senarai')">📋 Senarai Pekebun</button>
+      <button class="tab-btn" onclick="switchTab('tambah')">➕ Tambah Pekebun</button>
+      <button class="tab-btn" id="tab-admin" style="display:none" onclick="switchTab('admin')">⚙️ Urus Pengguna</button>
+    </div>
+
+    <!-- FORM TAMBAH -->
+    <div class="form-panel" id="panel-tambah">
+      <h2>🌱 Daftar Pekebun Baru</h2>
+      <div class="form-grid">
+        <div class="form-group"><label>Nama Penuh</label><input type="text" id="f-nama" placeholder="Contoh: Ahmad bin Ali"></div>
+        <div class="form-group"><label>No. Kad Pengenalan</label><input type="text" id="f-ic" placeholder="XXXXXX-XX-XXXX" maxlength="14"></div>
+        <div class="form-group"><label>No. Lot</label><input type="text" id="f-lot" placeholder="Contoh: LOT 2345"></div>
+        <div class="form-group"><label>Keluasan (Hektar)</label><input type="number" id="f-hektar" placeholder="0.00" step="0.01" min="0"></div>
+        <div class="form-group"><label>Tahun Menerima Bantuan</label><input type="number" id="f-tahun" placeholder="2024" min="1990" max="2100"></div>
+        <div class="form-group">
+          <label>Jenis Bantuan</label>
+          <select id="f-jenis">
+            <option value="">-- Pilih Jenis --</option>
+            <option>Baja Bersubsidi</option><option>Racun Perosak</option>
+            <option>Benih Unggul</option><option>Peralatan Pertanian</option>
+            <option>Bantuan Kewangan</option><option>Latihan & Kursus</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="btn-simpan" onclick="tambahPekebun()">✅ Simpan Rekod</button>
+        <button class="btn btn-secondary" onclick="clearForm()">🔄 Kosongkan</button>
+      </div>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div class="admin-panel" id="panel-admin">
+      <h2>⚙️ Urus Pengguna <span class="admin-badge">ADMIN SAHAJA</span></h2>
+      <p style="font-size:13px;color:#7a9a82;margin-bottom:16px">Tambah atau padam akaun pengguna sistem.</p>
+
+      <!-- Tambah pengguna baru -->
+      <div style="background:#f9fdfb;border-radius:12px;padding:18px;border:1px solid #e0ece5;margin-bottom:20px">
+        <h3 style="font-size:14px;font-weight:600;color:var(--green-dark);margin-bottom:14px">➕ Tambah Pengguna Baru</h3>
+        <div class="form-grid">
+          <div class="form-group"><label>Nama Pengguna</label><input type="text" id="nu-nama" placeholder="Nama penuh"></div>
+          <div class="form-group"><label>Username</label><input type="text" id="nu-username" placeholder="Contoh: ali123"></div>
+          <div class="form-group"><label>Password</label><input type="password" id="nu-password" placeholder="Minimum 6 aksara"></div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="nu-role">
+              <option value="user">Pengguna Biasa</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="tambahPengguna()">✅ Daftar Pengguna</button>
+        </div>
+      </div>
+
+      <!-- Senarai pengguna -->
+      <h3 style="font-size:14px;font-weight:600;color:var(--green-dark);margin-bottom:12px">👥 Senarai Pengguna Berdaftar</h3>
+      <div class="user-list" id="user-list"></div>
+    </div>
+
+    <!-- SENARAI PEKEBUN -->
+    <div id="panel-senarai">
+      <div class="toolbar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="carian" placeholder="Cari nama, IC, atau no lot..." oninput="filterData()">
+        </div>
+        <select id="filter-tahun" onchange="filterData()" style="width:145px"><option value="">Semua Tahun</option></select>
+        <select id="filter-jenis" onchange="filterData()" style="width:175px">
+          <option value="">Semua Jenis Bantuan</option>
+          <option>Baja Bersubsidi</option><option>Racun Perosak</option>
+          <option>Benih Unggul</option><option>Peralatan Pertanian</option>
+          <option>Bantuan Kewangan</option><option>Latihan & Kursus</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>#</th><th>Nama Pekebun</th><th>No. IC</th><th>No. Lot</th>
+            <th>Hektar</th><th>Tahun</th><th>Jenis Bantuan</th><th>Tindakan</th>
+          </tr></thead>
+          <tbody id="tabel-body"></tbody>
+        </table>
+        <div class="empty-state" id="empty-state"><div class="empty-icon">🌾</div><p>Tiada rekod pekebun.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDIT -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <h2>✏️ Kemaskini Rekod Pekebun</h2>
+    <input type="hidden" id="edit-id">
+    <div class="form-grid">
+      <div class="form-group"><label>Nama Penuh</label><input type="text" id="edit-nama"></div>
+      <div class="form-group"><label>No. IC</label><input type="text" id="edit-ic" maxlength="14"></div>
+      <div class="form-group"><label>No. Lot</label><input type="text" id="edit-lot"></div>
+      <div class="form-group"><label>Hektar</label><input type="number" id="edit-hektar" step="0.01" min="0"></div>
+      <div class="form-group"><label>Tahun Bantuan</label><input type="number" id="edit-tahun" min="1990" max="2100"></div>
+      <div class="form-group">
+        <label>Jenis Bantuan</label>
+        <select id="edit-jenis">
+          <option value="">-- Pilih --</option>
+          <option>Baja Bersubsidi</option><option>Racun Perosak</option>
+          <option>Benih Unggul</option><option>Peralatan Pertanian</option>
+          <option>Bantuan Kewangan</option><option>Latihan & Kursus</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="tutupModal()">Batal</button>
+      <button class="btn btn-primary" onclick="simpanEdit()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- FIREBASE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, push, update, remove, set, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCL9HrfG0kh2OQzS0YiEzN_KHHMJULF_m0",
+    authDomain: "profile-pekebun-kecil-lundu.firebaseapp.com",
+    databaseURL: "https://profile-pekebun-kecil-lundu-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "profile-pekebun-kecil-lundu",
+    storageBucket: "profile-pekebun-kecil-lundu.firebasestorage.app",
+    messagingSenderId: "686803468918",
+    appId: "1:686803468918:web:6cf27de81c7c9f5f2c5557"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const pekebunRef = ref(db, 'pekebun');
+  const usersRef = ref(db, 'users');
+
+  let allData = {};
+  let allUsers = {};
+
+  // Init default admin if no users exist
+  async function initDefaultAdmin() {
+    const snap = await new Promise(res => onValue(usersRef, res, { onlyOnce: true }));
+    if (!snap.val()) {
+      await set(ref(db, 'users/admin'), {
+        nama: 'Administrator',
+        username: 'admin',
+        password: 'admin123',
+        role: 'admin',
+        cipta: serverTimestamp()
+      });
+    }
+  }
+
+  initDefaultAdmin();
+
+  // Listen pekebun
+  onValue(pekebunRef, (snap) => {
+    allData = snap.val() || {};
+    document.getElementById('loading-overlay').classList.remove('show');
+    document.getElementById('sync-dot').className = 'sync-dot';
+    window._getData = () => allData;
+    filterData();
+  }, () => {
+    document.getElementById('sync-dot').className = 'sync-dot offline';
+  });
+
+  // Listen users
+  onValue(usersRef, (snap) => {
+    allUsers = snap.val() || {};
+    window._getUsers = () => allUsers;
+    document.getElementById('stat-users').textContent = Object.keys(allUsers).length;
+    renderUserList();
+  });
+
+  window._getData = () => allData;
+  window._getUsers = () => allUsers;
+  window._fbAdd = (rec) => push(pekebunRef, { ...rec, masa: serverTimestamp() });
+  window._fbUpdate = (id, rec) => update(ref(db, 'pekebun/' + id), rec);
+  window._fbDelete = (id) => remove(ref(db, 'pekebun/' + id));
+  window._addUser = (id, rec) => set(ref(db, 'users/' + id), rec);
+  window._deleteUser = (id) => remove(ref(db, 'users/' + id));
+</script>
+
+<script>
+  let currentUser = null;
+
+  // Semak session
+  const saved = sessionStorage.getItem('currentUser');
+  if (saved) {
+    currentUser = JSON.parse(saved);
+    showApp();
+  } else {
+    document.getElementById('loading-overlay').classList.remove('show');
+    document.getElementById('login-page').classList.add('show');
+  }
+
+  // Enter key login
+  document.getElementById('login-password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  async function doLogin() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errEl = document.getElementById('login-error');
+    const btn = document.getElementById('btn-login');
+
+    if (!username || !password) { errEl.classList.add('show'); errEl.textContent = '⚠️ Sila isi username dan password!'; return; }
+
+    btn.disabled = true; btn.textContent = '⏳ Semak...';
+    errEl.classList.remove('show');
+
+    // Tunggu Firebase
+    await new Promise(r => setTimeout(r, 800));
+
+    const users = window._getUsers ? window._getUsers() : {};
+    const found = Object.entries(users).find(([id, u]) => u.username === username && u.password === password);
+
+    if (found) {
+      currentUser = { id: found[0], ...found[1] };
+      sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+      document.getElementById('login-page').classList.remove('show');
+      showApp();
+    } else {
+      errEl.textContent = '❌ Username atau password salah!';
+      errEl.classList.add('show');
+      btn.disabled = false; btn.textContent = 'Log Masuk';
+    }
+  }
+
+  function showApp() {
+    document.getElementById('main-app').classList.add('show');
+    document.getElementById('login-page').classList.remove('show');
+    document.getElementById('current-user-name').textContent = currentUser.nama || currentUser.username;
+    const roleTag = document.getElementById('current-role-tag');
+    if (currentUser.role === 'admin') {
+      roleTag.textContent = 'ADMIN';
+      roleTag.className = 'role-tag role-admin';
+      document.getElementById('tab-admin').style.display = '';
+    } else {
+      roleTag.textContent = 'PENGGUNA';
+      roleTag.className = 'role-tag role-user';
+    }
+  }
+
+  function doLogout() {
+    if (!confirm('Nak log keluar?')) return;
+    sessionStorage.removeItem('currentUser');
+    currentUser = null;
+    document.getElementById('main-app').classList.remove('show');
+    document.getElementById('login-page').classList.add('show');
+    document.getElementById('login-username').value = '';
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-error').classList.remove('show');
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-tambah').classList.remove('show');
+    document.getElementById('panel-admin').classList.remove('show');
+    document.getElementById('panel-senarai').style.display = '';
+
+    if (tab === 'tambah') {
+      document.querySelectorAll('.tab-btn')[1].classList.add('active');
+      document.getElementById('panel-tambah').classList.add('show');
+      document.getElementById('panel-senarai').style.display = 'none';
+    } else if (tab === 'admin') {
+      document.querySelectorAll('.tab-btn')[2].classList.add('active');
+      document.getElementById('panel-admin').classList.add('show');
+      document.getElementById('panel-senarai').style.display = 'none';
+    } else {
+      document.querySelectorAll('.tab-btn')[0].classList.add('active');
+      filterData();
+    }
+  }
+
+  async function tambahPekebun() {
+    const nama = document.getElementById('f-nama').value.trim();
+    const ic = document.getElementById('f-ic').value.trim();
+    const lot = document.getElementById('f-lot').value.trim();
+    const hektar = parseFloat(document.getElementById('f-hektar').value);
+    const tahun = parseInt(document.getElementById('f-tahun').value);
+    const jenis = document.getElementById('f-jenis').value;
+    if (!nama||!ic||!lot||isNaN(hektar)||isNaN(tahun)||!jenis) { showToast('⚠️ Sila lengkapkan semua maklumat!',true); return; }
+    if (!/^\d{6}-\d{2}-\d{4}$/.test(ic)) { showToast('⚠️ Format IC salah: XXXXXX-XX-XXXX',true); return; }
+    const btn = document.getElementById('btn-simpan');
+    btn.disabled=true; btn.textContent='⏳ Menyimpan...';
+    try {
+      await window._fbAdd({ nama, ic, lot, hektar, tahun, jenis, dikemaskini_oleh: currentUser.username });
+      clearForm(); switchTab('senarai');
+      showToast('✅ Rekod disimpan & disync!');
+    } catch(e) { showToast('❌ Gagal simpan!',true); }
+    btn.disabled=false; btn.textContent='✅ Simpan Rekod';
+  }
+
+  function clearForm() {
+    ['f-nama','f-ic','f-lot','f-hektar','f-tahun'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('f-jenis').value='';
+  }
+
+  async function tambahPengguna() {
+    const nama = document.getElementById('nu-nama').value.trim();
+    const username = document.getElementById('nu-username').value.trim().toLowerCase();
+    const password = document.getElementById('nu-password').value;
+    const role = document.getElementById('nu-role').value;
+    if (!nama||!username||!password) { showToast('⚠️ Sila isi semua maklumat!',true); return; }
+    if (password.length < 6) { showToast('⚠️ Password minimum 6 aksara!',true); return; }
+    const users = window._getUsers();
+    if (Object.values(users).find(u => u.username === username)) { showToast('⚠️ Username sudah wujud!',true); return; }
+    try {
+      await window._addUser('u_' + Date.now(), { nama, username, password, role });
+      ['nu-nama','nu-username','nu-password'].forEach(id => document.getElementById(id).value='');
+      document.getElementById('nu-role').value='user';
+      showToast('✅ Pengguna berjaya didaftarkan!');
+    } catch(e) { showToast('❌ Gagal daftar pengguna!',true); }
+  }
+
+  async function padamPengguna(id) {
+    const users = window._getUsers();
+    if (users[id]?.role === 'admin' && Object.values(users).filter(u=>u.role==='admin').length <= 1) {
+      showToast('⚠️ Mesti ada sekurang-kurangnya 1 Admin!',true); return;
+    }
+    if (!confirm('Padam pengguna ini?')) return;
+    try { await window._deleteUser(id); showToast('🗑️ Pengguna dipadam.'); }
+    catch(e) { showToast('❌ Gagal padam!',true); }
+  }
+
+  function renderUserList() {
+    const users = window._getUsers ? window._getUsers() : {};
+    const list = document.getElementById('user-list');
+    if (!list) return;
+    const entries = Object.entries(users);
+    if (!entries.length) { list.innerHTML = '<p style="color:#aaa;font-size:13px;text-align:center;padding:16px">Tiada pengguna berdaftar.</p>'; return; }
+    list.innerHTML = entries.map(([id, u]) => `
+      <div class="user-item">
+        <div class="user-info">
+          <div class="user-avatar ${u.role==='admin'?'avatar-admin':'avatar-user'}">${u.nama?u.nama[0].toUpperCase():'?'}</div>
+          <div>
+            <div class="user-name">${u.nama || '-'}</div>
+            <div class="user-role-lbl">@${u.username} • <span style="color:${u.role==='admin'?'#9a6f00':'var(--green-mid)'};font-weight:600">${u.role==='admin'?'Admin':'Pengguna Biasa'}</span></div>
+          </div>
+        </div>
+        ${id !== currentUser?.id ? `<button class="btn btn-danger" onclick="padamPengguna('${id}')">🗑️ Padam</button>` : '<span style="font-size:12px;color:#aaa">Akaun Anda</span>'}
+      </div>
+    `).join('');
+  }
+
+  function filterData() {
+    const data = window._getData ? window._getData() : {};
+    const carian = (document.getElementById('carian')?.value||'').toLowerCase();
+    const tahun = document.getElementById('filter-tahun')?.value||'';
+    const jenis = document.getElementById('filter-jenis')?.value||'';
+    let rows = Object.entries(data).map(([id,p])=>({...p,_id:id}));
+    if (carian) rows = rows.filter(p=>p.nama?.toLowerCase().includes(carian)||p.ic?.includes(carian)||p.lot?.toLowerCase().includes(carian));
+    if (tahun) rows = rows.filter(p=>String(p.tahun)===tahun);
+    if (jenis) rows = rows.filter(p=>p.jenis===jenis);
+    updateStats(data); updateFilterTahun(data); renderTabel(rows);
+  }
+
+  function updateStats(data) {
+    const arr = Object.values(data);
+    document.getElementById('stat-total').textContent = arr.length;
+    document.getElementById('stat-hektar').textContent = arr.reduce((s,p)=>s+(p.hektar||0),0).toFixed(2);
+    document.getElementById('stat-bantuan').textContent = arr.filter(p=>p.jenis).length;
+  }
+
+  function updateFilterTahun(data) {
+    const sel = document.getElementById('filter-tahun');
+    const cur = sel.value;
+    const years = [...new Set(Object.values(data).map(p=>p.tahun))].filter(Boolean).sort((a,b)=>b-a);
+    sel.innerHTML = '<option value="">Semua Tahun</option>' + years.map(y=>`<option value="${y}"${y==cur?' selected':''}>${y}</option>`).join('');
+  }
+
+  function renderTabel(rows) {
+    const tbody = document.getElementById('tabel-body');
+    const empty = document.getElementById('empty-state');
+    const isAdmin = currentUser?.role === 'admin';
+    if (!rows.length) { tbody.innerHTML=''; empty.style.display=''; return; }
+    empty.style.display='none';
+    tbody.innerHTML = rows.map((p,i)=>`
+      <tr>
+        <td style="color:#aaa;font-size:11px">${i+1}</td>
+        <td class="td-name">${p.nama||'-'}</td>
+        <td class="td-ic">${p.ic||'-'}</td>
+        <td><span class="badge badge-green">${p.lot||'-'}</span></td>
+        <td><strong>${(p.hektar||0).toFixed(2)}</strong><span style="font-size:11px;color:#aaa"> ha</span></td>
+        <td><span class="badge badge-gold">📅 ${p.tahun||'-'}</span></td>
+        <td style="font-size:12px">${p.jenis||'-'}</td>
+        <td class="td-actions">
+          <button class="btn btn-edit" onclick="bukaEdit('${p._id}')">✏️</button>
+          ${isAdmin ? `<button class="btn btn-danger" onclick="hapus('${p._id}')">🗑️</button>` : ''}
+        </td>
+      </tr>`).join('');
+  }
+
+  async function hapus(id) {
+    if (currentUser?.role !== 'admin') { showToast('⚠️ Hanya Admin boleh padam rekod!',true); return; }
+    if (!confirm('Padam rekod ini?')) return;
+    try { await window._fbDelete(id); showToast('🗑️ Rekod dipadam.'); }
+    catch(e) { showToast('❌ Gagal padam!',true); }
+  }
+
+  function bukaEdit(id) {
+    const p = (window._getData?.()||{})[id];
+    if (!p) return;
+    document.getElementById('edit-id').value=id;
+    document.getElementById('edit-nama').value=p.nama||'';
+    document.getElementById('edit-ic').value=p.ic||'';
+    document.getElementById('edit-lot').value=p.lot||'';
+    document.getElementById('edit-hektar').value=p.hektar||'';
+    document.getElementById('edit-tahun').value=p.tahun||'';
+    document.getElementById('edit-jenis').value=p.jenis||'';
+    document.getElementById('modal-edit').classList.add('show');
+  }
+
+  function tutupModal() { document.getElementById('modal-edit').classList.remove('show'); }
+
+  async function simpanEdit() {
+    const id = document.getElementById('edit-id').value;
+    const nama = document.getElementById('edit-nama').value.trim();
+    const ic = document.getElementById('edit-ic').value.trim();
+    const lot = document.getElementById('edit-lot').value.trim();
+    const hektar = parseFloat(document.getElementById('edit-hektar').value);
+    const tahun = parseInt(document.getElementById('edit-tahun').value);
+    const jenis = document.getElementById('edit-jenis').value;
+    if (!nama||!ic||!lot||isNaN(hektar)||isNaN(tahun)) { showToast('⚠️ Sila lengkapkan semua!',true); return; }
+    try {
+      await window._fbUpdate(id,{nama,ic,lot,hektar,tahun,jenis,dikemaskini_oleh:currentUser.username});
+      tutupModal(); showToast('✅ Rekod dikemaskini!');
+    } catch(e) { showToast('❌ Gagal kemaskini!',true); }
+  }
+
+  let toastTimer;
+  function showToast(msg, isError) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (isError?' error':'');
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>t.classList.remove('show'), 3000);
+  }
+
+  ['f-ic','edit-ic'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', function() {
+      let v = this.value.replace(/\D/g,'');
+      if (v.length>6) v=v.slice(0,6)+'-'+v.slice(6);
+      if (v.length>9) v=v.slice(0,9)+'-'+v.slice(9);
+      this.value=v.slice(0,14);
+    });
+  });
+
+  document.getElementById('modal-edit').addEventListener('click',function(e){if(e.target===this)tutupModal();});
+</script>
+</body>
+</html>
